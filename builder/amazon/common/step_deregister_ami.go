@@ -21,7 +21,13 @@ func (s *StepDeregisterAMI) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	regions := s.Regions
 	if len(regions) == 0 {
-		regions = append(regions, s.AccessConfig.RawRegion)
+		regions, err := append(regions, s.AccessConfig.Region())
+		if err != nil {
+			err := fmt.Errorf("Error getting region: %s", err)
+			state.Put("error", err)
+			ui.Error(err.Error())
+			return multistep.ActionHalt
+		}
 	}
 
 	// Check for force deregister
